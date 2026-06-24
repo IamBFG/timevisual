@@ -1,0 +1,16 @@
+{
+  "name": "visual-timer-bar",
+  "version": "1.0.0",
+  "description": "Visual timer bar overlay for desktop",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-packager . visual-timer --platform=win32 --arch=x64 --out=dist --overwrite"
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  },
+  "devDependencies": {
+    "electron-packager": "^17.1.2"
+  }
+}

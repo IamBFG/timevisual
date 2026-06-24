@@ -1,0 +1,832 @@
+/* Root Styles & Windows 11 Fluent Design System */
+:root {
+  /* Windows 11 Dark Mode Colors */
+  --win11-bg: rgba(32, 32, 32, 0.85); /* Acrylic panel background */
+  --win11-bg-solid: #202020;
+  --win11-card-bg: rgba(45, 45, 45, 0.6);
+  --win11-card-hover: rgba(255, 255, 255, 0.08);
+  --win11-border: rgba(255, 255, 255, 0.09);
+  --win11-border-secondary: rgba(255, 255, 255, 0.06);
+  --win11-text-primary: #ffffff;
+  --win11-text-secondary: #adadad;
+  --win11-text-disabled: #5f5f5f;
+  
+  /* System Accents (Default Windows 11 Blue) */
+  --win11-accent: #0078d4;
+  --win11-accent-light: #60cdff; /* Accent used in Dark Mode */
+  --win11-accent-dark: #005a9e;
+  
+  /* Timer Live Variables (Synchronized by renderer.js) */
+  --bar-color: linear-gradient(90deg, #ff416c, #ff4b2b);
+  --bar-thickness: 12px;
+  --bar-glow: 15px;
+  --bg-opacity: 0.15;
+  --glow-color: rgba(255, 75, 43, 0.5);
+  --text-size: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body, html {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent !important; /* Click-through transparency */
+  font-family: 'Segoe UI', 'Segoe UI Variable', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  color: var(--win11-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Drag overlay helper when holding Ctrl */
+#drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(1px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+#drag-overlay:not(.hidden) {
+  opacity: 1;
+}
+
+.drag-message {
+  background: rgba(32, 32, 32, 0.95);
+  padding: 14px 28px;
+  border-radius: 8px;
+  border: 1px solid var(--win11-accent-light);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--win11-accent-light);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+
+.drag-guide {
+  position: absolute;
+  border: 1px dashed rgba(96, 205, 255, 0.4);
+  pointer-events: none;
+}
+.horizontal-guide {
+  left: 0;
+  width: 100%;
+  height: 0;
+}
+.vertical-guide {
+  top: 0;
+  height: 100%;
+  width: 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --- The Progress Bar --- */
+#timer-bar-container {
+  position: absolute;
+  z-index: 1000;
+}
+
+#timer-bar-container.horizontal {
+  left: 0;
+  width: 100vw;
+  height: var(--bar-thickness);
+  cursor: ns-resize;
+}
+
+#timer-bar-container.vertical {
+  top: 0;
+  height: 100vh;
+  width: var(--bar-thickness);
+  cursor: ew-resize;
+}
+
+#timer-bar-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  opacity: var(--bg-opacity);
+}
+
+#timer-bar {
+  position: absolute;
+  background: var(--bar-color);
+  box-shadow: 0 0 var(--bar-glow) var(--glow-color);
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+/* Inverted shrink: horizontal shrinks to the right */
+#timer-bar-container.horizontal #timer-bar {
+  top: 0;
+  right: 0;
+  left: auto;
+  height: 100%;
+  width: 100%;
+  transform-origin: right center;
+}
+
+/* Inverted shrink: vertical shrinks to the bottom */
+#timer-bar-container.vertical #timer-bar {
+  bottom: 0;
+  top: auto;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: center bottom;
+}
+
+#timer-text {
+  position: absolute;
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--text-size);
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1005;
+}
+
+#timer-bar-container.horizontal #timer-text.pos-center {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+#timer-bar-container.horizontal #timer-text.pos-start {
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+#timer-bar-container.horizontal #timer-text.pos-end {
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+#timer-bar-container.horizontal #timer-text.pos-floating {
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+}
+
+#timer-bar-container.vertical #timer-text.pos-center {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+#timer-bar-container.vertical #timer-text.pos-start {
+  left: 50%;
+  top: 30px;
+  transform: translateX(-50%) rotate(90deg);
+}
+#timer-bar-container.vertical #timer-text.pos-end {
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%) rotate(90deg);
+}
+#timer-bar-container.vertical #timer-text.pos-floating {
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Warning Flashing Animation */
+@keyframes warning-flash-color {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 var(--bar-glow) var(--glow-color));
+  }
+  50% {
+    filter: brightness(1.6) drop-shadow(0 0 calc(var(--bar-glow) * 1.8) #ff4b4b);
+    background: #ff4b4b !important;
+  }
+}
+
+.flash-tick {
+  animation: warning-flash-color var(--flash-duration, 0.4s) ease-out;
+}
+
+/* --- Floating Settings Toggle Button --- */
+#settings-toggle-btn {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(32, 32, 32, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  color: var(--win11-text-secondary);
+  cursor: pointer;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  opacity: 0.25;
+}
+
+#settings-toggle-btn:hover {
+  opacity: 1;
+  color: var(--win11-accent-light);
+  background: rgba(32, 32, 32, 0.9);
+  border-color: rgba(96, 205, 255, 0.4);
+  transform: rotate(30deg) scale(1.08);
+  box-shadow: 0 4px 16px rgba(96, 205, 255, 0.2);
+}
+
+/* --- Settings Dashboard Panel (Windows 11 Fluent) --- */
+#settings-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 410px;
+  max-width: 90%;
+  background: var(--win11-bg);
+  backdrop-filter: blur(25px) saturate(130%);
+  border: 1px solid var(--win11-border);
+  border-radius: 8px; /* Win11 standard window border-radius */
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: win11Open 0.22s cubic-bezier(0.1, 0.9, 0.2, 1);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+@keyframes win11Open {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Panel Header */
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--win11-border-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.015);
+  cursor: move;
+}
+
+.title-container h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--win11-text-primary);
+  letter-spacing: 0.2px;
+}
+
+.subtitle {
+  font-size: 11px;
+  color: var(--win11-text-secondary);
+  display: block;
+  margin-top: 1px;
+}
+
+#close-panel-btn {
+  background: none;
+  border: none;
+  color: var(--win11-text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+}
+
+#close-panel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--win11-text-primary);
+}
+
+#close-panel-btn:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Panel Body */
+.panel-body {
+  padding: 18px 20px;
+  max-height: 440px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.panel-body::-webkit-scrollbar {
+  width: 5px;
+}
+.panel-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.panel-section {
+  margin-bottom: 20px;
+}
+
+.panel-section h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--win11-text-secondary);
+  margin-bottom: 10px;
+}
+
+/* Timer input group (Segoe Fluent Style) */
+.timer-input-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--win11-border-secondary);
+  margin-bottom: 12px;
+}
+
+.input-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 54px;
+}
+
+.input-item label {
+  font-size: 9px;
+  color: var(--win11-text-secondary);
+  margin-bottom: 2px;
+}
+
+.input-item input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  color: var(--win11-text-primary);
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  padding: 5px 0;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.input-item input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid var(--win11-accent-light);
+}
+
+.input-separator {
+  font-size: 18px;
+  color: var(--win11-text-secondary);
+  margin-top: 10px;
+}
+
+/* Presets */
+.presets-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.preset-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--win11-text-primary);
+  border-radius: 4px;
+  padding: 5px 0;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.preset-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.preset-btn:active {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Action Buttons (Fluent) */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.primary-btn, .secondary-btn, .danger-btn {
+  border: none;
+  border-radius: 4px; /* Win11 standard rounded buttons */
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.primary-btn {
+  flex: 2;
+  background: var(--win11-accent);
+  color: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.primary-btn:hover {
+  background: #1084de;
+}
+
+.primary-btn:active {
+  background: var(--win11-accent-dark);
+  transform: scale(0.98);
+}
+
+.primary-btn.paused {
+  background: #107c41; /* Windows Green accent for pause/resume state */
+}
+.primary-btn.paused:hover {
+  background: #188a4c;
+}
+
+.secondary-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--win11-text-primary);
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.secondary-btn:active {
+  background: rgba(255, 255, 255, 0.02);
+  transform: scale(0.98);
+}
+
+.danger-btn {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #ff6b6b;
+}
+.danger-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.danger-btn:active {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/* Tabs Navigation (Windows 11 Settings Style: Pill Segmented control) */
+.settings-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 3px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+  border: 1px solid var(--win11-border-secondary);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--win11-text-secondary);
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: var(--win11-text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-btn.active {
+  color: var(--win11-text-primary);
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+}
+
+/* Tab Content */
+.tab-content {
+  display: none;
+  animation: win11TabFade 0.15s ease-out;
+}
+
+@keyframes win11TabFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Controls */
+.control-row {
+  margin-bottom: 14px;
+}
+
+.control-row label {
+  display: block;
+  font-size: 11px;
+  color: var(--win11-text-secondary);
+  margin-bottom: 4px;
+}
+
+/* Slider (Windows 11 Accent Style) */
+.slider-val-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-val-container input[type="range"] {
+  appearance: none;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.2);
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Webkit slider thumb styling */
+.slider-val-container input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3.5px solid var(--win11-accent-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.slider-val-container input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--win11-border-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  min-width: 44px;
+  text-align: center;
+}
+
+/* Warning Settings Headers */
+.control-row h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--win11-text-primary);
+  margin-bottom: 6px;
+  padding-left: 6px;
+  border-left: 2px solid var(--win11-accent-light);
+}
+
+.row-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.sub-input {
+  flex: 1;
+}
+
+.sub-input label {
+  font-size: 9px;
+  margin-bottom: 2px;
+}
+
+.sub-input input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.sub-input input:focus {
+  border-bottom: 2px solid var(--win11-accent-light);
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-row label {
+  margin-bottom: 0;
+}
+
+/* Windows 11 style Toggle Switch */
+.ios-switch {
+  appearance: none;
+  width: 38px;
+  height: 20px;
+  background: transparent;
+  border: 1px solid var(--win11-text-secondary);
+  border-radius: 10px;
+  position: relative;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios-switch:hover {
+  border-color: var(--win11-text-primary);
+}
+
+.ios-switch:checked {
+  background: var(--win11-accent-light);
+  border-color: var(--win11-accent-light);
+}
+
+.ios-switch::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--win11-text-secondary);
+  top: 3px;
+  left: 3px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios-switch:hover::before {
+  background: var(--win11-text-primary);
+}
+
+.ios-switch:checked::before {
+  transform: translateX(18px);
+  background: #000000; /* Windows 11 active knob is dark */
+}
+
+/* Color theme selectors (Fluent Tiles) */
+.theme-presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.theme-preset {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px; /* Win11 styled rounded square color tiles */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+
+.theme-preset:hover {
+  transform: scale(1.08);
+}
+
+.theme-preset.active {
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--win11-accent-light);
+}
+
+#custom-color-picker {
+  border: none;
+  background: none;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  outline: none;
+  vertical-align: middle;
+}
+
+select {
+  width: 100%;
+  background: rgba(45, 45, 45, 0.9);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px;
+  color: var(--win11-text-primary);
+  padding: 6px 8px;
+  outline: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+select option {
+  background: #2b2b2b;
+  color: #fff;
+}
+
+/* Radio Group */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.radio-container {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.radio-container input {
+  accent-color: var(--win11-accent-light);
+  cursor: pointer;
+}
+
+.radio-label {
+  font-size: 11px;
+  color: var(--win11-text-primary);
+}
+
+.drag-hint {
+  background: rgba(96, 205, 255, 0.05);
+  border-left: 3px solid var(--win11-accent-light);
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.drag-hint p {
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--win11-text-secondary);
+}
+
+.drag-hint code {
+  background: rgba(255,255,255,0.08);
+  padding: 1px 3px;
+  border-radius: 3px;
+  color: #fff;
+}
+
+/* Panel Footer */
+.panel-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--win11-border-secondary);
+  background: rgba(0, 0, 0, 0.1);
+}

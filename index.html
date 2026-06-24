@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visual Timer Overlay</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Drag Helper Overlay (shows up when holding Ctrl to indicate drag state) -->
+  <div id="drag-overlay" class="hidden">
+    <div class="drag-message">Перетаскивание панели (Ctrl зажат)</div>
+    <div class="drag-guide horizontal-guide"></div>
+    <div class="drag-guide vertical-guide"></div>
+  </div>
+
+  <!-- The Progress Bar Wrapper -->
+  <div id="timer-bar-container" class="horizontal">
+    <div id="timer-bar-bg"></div>
+    <div id="timer-bar"></div>
+    <!-- Overlay Text Timer -->
+    <div id="timer-text" class="hidden">00:00</div>
+  </div>
+
+  <!-- Floating Settings Toggle Button (visible when settings are hidden) -->
+  <button id="settings-toggle-btn" title="Настройки (Esc)">
+    <svg viewBox="0 0 24 24" width="24" height="24">
+      <path fill="currentColor" d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+    </svg>
+  </button>
+
+  <!-- Settings Dashboard Panel (Floating glassmorphism panel) -->
+  <div id="settings-panel">
+    <div class="panel-header">
+      <div class="title-container">
+        <h2>Визуальный Таймер</h2>
+        <span class="subtitle">Desktop Progress Overlay</span>
+      </div>
+      <button id="close-panel-btn" title="Скрыть панель (Esc)">×</button>
+    </div>
+
+    <div class="panel-body">
+      <!-- Section 1: Timer Controls & Presets -->
+      <div class="panel-section">
+        <h3>Управление таймером</h3>
+        
+        <div class="timer-input-group">
+          <div class="input-item">
+            <label for="hours-input">Ч</label>
+            <input type="number" id="hours-input" min="0" max="23" value="0">
+          </div>
+          <div class="input-separator">:</div>
+          <div class="input-item">
+            <label for="minutes-input">М</label>
+            <input type="number" id="minutes-input" min="0" max="59" value="5">
+          </div>
+          <div class="input-separator">:</div>
+          <div class="input-item">
+            <label for="seconds-input">С</label>
+            <input type="number" id="seconds-input" min="0" max="59" value="0">
+          </div>
+        </div>
+
+        <div class="presets-container">
+          <button class="preset-btn" data-time="30">30с</button>
+          <button class="preset-btn" data-time="60">1м</button>
+          <button class="preset-btn" data-time="300">5м</button>
+          <button class="preset-btn" data-time="600">10м</button>
+          <button class="preset-btn" data-time="1500">25м</button>
+          <button class="preset-btn" data-time="3600">1ч</button>
+        </div>
+
+        <div class="action-buttons">
+          <button id="play-pause-btn" class="primary-btn">
+            <span class="btn-icon">▶</span> <span class="btn-text">Старт</span>
+          </button>
+          <button id="reset-btn" class="secondary-btn">Сброс</button>
+        </div>
+      </div>
+
+      <!-- Tabs Navigation for Advanced Settings -->
+      <div class="settings-tabs">
+        <button class="tab-btn active" data-tab="style-settings">Стиль</button>
+        <button class="tab-btn" data-tab="warning-settings">Оповещения</button>
+        <button class="tab-btn" data-tab="layout-settings">Положение</button>
+      </div>
+
+      <!-- Tab Content: Style Settings -->
+      <div id="style-settings" class="tab-content active">
+        <!-- Thickness -->
+        <div class="control-row">
+          <label for="thickness-slider">Толщина полосы:</label>
+          <div class="slider-val-container">
+            <input type="range" id="thickness-slider" min="4" max="150" value="12">
+            <span id="thickness-val" class="slider-badge">12px</span>
+          </div>
+        </div>
+
+        <!-- Color Themes (Gradients / Solid) -->
+        <div class="control-row">
+          <label>Цветовая схема:</label>
+          <div class="theme-presets">
+            <button class="theme-preset active" data-theme="sunset" style="background: linear-gradient(90deg, #ff416c, #ff4b2b);" title="Закат"></button>
+            <button class="theme-preset" data-theme="ocean" style="background: linear-gradient(90deg, #00c6ff, #0072ff);" title="Океан"></button>
+            <button class="theme-preset" data-theme="neon" style="background: linear-gradient(90deg, #0df, #f0f);" title="Киберпанк"></button>
+            <button class="theme-preset" data-theme="forest" style="background: linear-gradient(90deg, #11998e, #38ef7d);" title="Лес"></button>
+            <button class="theme-preset" data-theme="gold" style="background: linear-gradient(90deg, #f857a6, #ff5858);" title="Магия"></button>
+            <button class="theme-preset" data-theme="solid" style="background: #ffffff; border: 1px dashed #ccc;" title="Свой цвет"></button>
+          </div>
+          <div id="custom-color-container" class="hidden">
+            <label for="custom-color-picker" style="font-size: 11px;">Выберите цвет:</label>
+            <input type="color" id="custom-color-picker" value="#00ffcc">
+          </div>
+        </div>
+
+        <!-- Glow slider -->
+        <div class="control-row">
+          <label for="glow-slider">Свечение:</label>
+          <div class="slider-val-container">
+            <input type="range" id="glow-slider" min="0" max="40" value="15">
+            <span id="glow-val" class="slider-badge">15px</span>
+          </div>
+        </div>
+
+        <!-- Background Transparency -->
+        <div class="control-row">
+          <label for="bg-opacity-slider">Прозрачность подложки:</label>
+          <div class="slider-val-container">
+            <input type="range" id="bg-opacity-slider" min="0" max="100" value="15">
+            <span id="bg-opacity-val" class="slider-badge">15%</span>
+          </div>
+        </div>
+
+        <!-- Overlay Text Config -->
+        <div class="control-row toggle-row">
+          <label for="show-text-checkbox">Показывать время текстом:</label>
+          <input type="checkbox" id="show-text-checkbox" class="ios-switch">
+        </div>
+        
+        <div id="text-config-details" class="hidden">
+          <div class="control-row">
+            <label for="text-size-slider">Размер текста:</label>
+            <div class="slider-val-container">
+              <input type="range" id="text-size-slider" min="10" max="72" value="20">
+              <span id="text-size-val" class="slider-badge">20px</span>
+            </div>
+          </div>
+          <div class="control-row">
+            <label for="text-pos-select">Положение текста:</label>
+            <select id="text-pos-select">
+              <option value="center">По центру полосы</option>
+              <option value="start">В начале полосы</option>
+              <option value="end">В конце полосы</option>
+              <option value="floating">Сверху/Слева (над полосой)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Warning Settings -->
+      <div id="warning-settings" class="tab-content">
+        <!-- Stage 1 Warning (Yellow/Orange Alert) -->
+        <div class="control-row">
+          <h4>Предупреждение 1 уровня</h4>
+          <div class="row-inputs">
+            <div class="sub-input">
+              <label for="w1-time">Время (сек до конца):</label>
+              <input type="number" id="w1-time" min="1" max="3600" value="20">
+            </div>
+            <div class="sub-input">
+              <label for="w1-rate">Тик/Мигание (сек):</label>
+              <input type="number" id="w1-rate" step="0.1" min="0.1" max="10" value="2">
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2 Warning (Red Alert) -->
+        <div class="control-row">
+          <h4>Предупреждение 2 уровня (критическое)</h4>
+          <div class="row-inputs">
+            <div class="sub-input">
+              <label for="w2-time">Время (сек до конца):</label>
+              <input type="number" id="w2-time" min="1" max="3600" value="5">
+            </div>
+            <div class="sub-input">
+              <label for="w2-rate">Тик/Мигание (сек):</label>
+              <input type="number" id="w2-rate" step="0.1" min="0.1" max="10" value="0.5">
+            </div>
+          </div>
+        </div>
+
+        <!-- Sound Toggle -->
+        <div class="control-row toggle-row">
+          <label for="sound-checkbox">Звуковой сигнал при тике (метроном):</label>
+          <input type="checkbox" id="sound-checkbox" class="ios-switch" checked>
+        </div>
+
+        <div class="control-row toggle-row">
+          <label for="alarm-checkbox">Звуковой сигнал при завершении:</label>
+          <input type="checkbox" id="alarm-checkbox" class="ios-switch" checked>
+        </div>
+      </div>
+
+      <!-- Tab Content: Layout/Position Settings -->
+      <div id="layout-settings" class="tab-content">
+        <!-- Orientation -->
+        <div class="control-row">
+          <label>Ориентация полосы:</label>
+          <div class="radio-group">
+            <label class="radio-container">
+              <input type="radio" name="orientation" value="horizontal" checked>
+              <span class="radio-label">Горизонтальная (на всю ширину)</span>
+            </label>
+            <label class="radio-container">
+              <input type="radio" name="orientation" value="vertical">
+              <span class="radio-label">Вертикальная (на всю высоту)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Position Slider -->
+        <div class="control-row">
+          <label id="position-slider-label" for="position-slider">Положение по вертикали (Y):</label>
+          <div class="slider-val-container">
+            <input type="range" id="position-slider" min="0" max="1000" value="0">
+            <span id="position-val" class="slider-badge">0%</span>
+          </div>
+        </div>
+
+        <!-- Drag explanation -->
+        <div class="drag-hint">
+          <p><strong>Быстрое перемещение:</strong> Зажмите клавишу <code>Ctrl</code> + левую кнопку мыши в любом месте экрана и тяните, чтобы переместить полосу.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button id="exit-btn" class="danger-btn">Выйти из программы</button>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
